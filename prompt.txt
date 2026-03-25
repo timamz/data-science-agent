@@ -1,0 +1,17 @@
+Task: Tabular Regression
+
+Predict the "target" column for the test dataset. The target is a continuous numeric variable.
+
+Dataset:
+- Training data: data/train.csv (contains target column)
+- Test data: data/test.csv (no target column)
+- Sample submission format: data/sample_submition.csv
+- Solution for verification: data/solution.csv (use Public rows only)
+
+Evaluation:
+- Metric: Mean Squared Error (MSE)
+- Target score: MSE <= 9500 (lower is better)
+
+Submission format: CSV with columns "index" and "prediction", matching data/sample_submition.csv.
+
+Save the final submission as submission.csv in the project root.

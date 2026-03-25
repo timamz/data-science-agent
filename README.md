@@ -104,6 +104,8 @@ python main.py
 
 ### Конфигурация
 
+По умолчанию используется модель **Qwen 3 Coder Next** (`qwen/qwen3-coder-next`) через API vsellm.ru.
+
 `.env` файл:
 ```
 MODEL=qwen/qwen3-coder-next

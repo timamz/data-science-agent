@@ -1,0 +1,278 @@
+{
+  "run_id": "20260326_163621",
+  "config": {
+    "model": "qwen/qwen3-coder-next",
+    "time_budget": 3600,
+    "lib_versions": "  pandas: 3.0.1\n  numpy: 2.4.3\n  sklearn: 1.8.0\n  lightgbm: 4.6.0\n  xgboost: 3.2.0\n  optuna: 4.8.0",
+    "started_at": "2026-03-26 16:36:21"
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "model": "XGBoost",
+      "params": "{'objective': 'reg:squarederror', 'base_score': None, 'booster': None, 'callbacks': None, 'colsample_bylevel': None, 'colsample_bynode': None, 'colsample_bytree': 0.8, 'device': None, 'early_stopping_rounds': None, 'enable_categorical': False, 'eval_metric': 'rmse', 'feature_types': None, 'feature_weights': None, 'gamma': None, 'grow_policy': None, 'importance_type': None, 'interaction_constraints': None, 'learning_rate': 0.05, 'max_bin': None, 'max_cat_threshold': None, 'max_cat_to_onehot': None, 'max_delta_step': None, 'max_depth': 6, 'max_leaves': None, 'min_child_weight': None, 'missing': nan, 'monotone_constraints': None, 'multi_strategy': None, 'n_estimators': 500, 'n_jobs': -1, 'num_parallel_tree': None, 'random_state': 42, 'reg_alpha': None, 'reg_lambda': None, 'sampling_method': None, 'scale_pos_weight': None, 'subsample': 0.8, 'tree_method': None, 'validate_parameters': None, 'verbosity': 0}",
+      "metrics": {
+        "mse": 10357.97,
+        "rmse": 101.77,
+        "mae": 76.62,
+        "r2": 0.4107
+      },
+      "timestamp": "2026-03-26 16:37:07"
+    },
+    {
+      "iteration": 2,
+      "model": "xgboost",
+      "params": "{'n_estimators': 500, 'max_depth': 7, 'learning_rate': 0.05, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'n_jobs': -1, 'tree_method': 'hist', 'device': 'cpu'}",
+      "metrics": {
+        "mse": 10664.28,
+        "rmse": 103.27,
+        "mae": 77.97,
+        "r2": 0.3932
+      },
+      "timestamp": "2026-03-26 16:37:38"
+    },
+    {
+      "iteration": 3,
+      "model": "XGBoost",
+      "params": "{'n_estimators': 500, 'learning_rate': 0.03, 'max_depth': 8, 'subsample': 0.8, 'colsample_bytree': 0.7, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1, 'min_child_weight': 3, 'tree_method': 'hist', 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'verbose': 0}",
+      "metrics": {
+        "mse": 10166.96,
+        "rmse": 100.83,
+        "mae": 75.89,
+        "r2": 0.4215
+      },
+      "timestamp": "2026-03-26 16:38:48"
+    },
+    {
+      "iteration": 4,
+      "model": "LightGBM",
+      "params": "{'objective': 'regression', 'metric': 'rmse', 'boosting_type': 'gbdt', 'num_leaves': 31, 'learning_rate': 0.05, 'feature_fraction': 0.8, 'bagging_fraction': 0.8, 'bagging_freq': 5, 'verbose': -1, 'seed': 42, 'n_jobs': -1}",
+      "metrics": {
+        "mse": 10426.47,
+        "rmse": 102.11,
+        "mae": 76.83,
+        "r2": 0.4068
+      },
+      "timestamp": "2026-03-26 16:41:53"
+    },
+    {
+      "iteration": 5,
+      "model": "ensemble_gradient_boosting",
+      "params": "{'models': ['xgb', 'gb', 'rf', 'et'], 'xgb_params': {'n_estimators': 200, 'max_depth': 6, 'learning_rate': 0.1, 'subsample': 0.8, 'colsample_bytree': 0.8}, 'gb_params': {'n_estimators': 200, 'max_depth': 5, 'learning_rate': 0.1, 'subsample': 0.8}, 'rf_params': {'n_estimators': 150, 'max_depth': 15, 'min_samples_split': 5, 'min_samples_leaf': 2}, 'et_params': {'n_estimators': 150, 'max_depth': 15, 'min_samples_split': 5, 'min_samples_leaf': 2}, 'weights': [0.2517246402491304, 0.24991657586950525, 0.25206722282931027, 0.2462915610520542], 'ensemble_method': 'weighted_average', 'imputation': 'median'}",
+      "metrics": {
+        "mse": 10352.46,
+        "rmse": 101.75,
+        "mae": 77.68,
+        "r2": 0.411
+      },
+      "timestamp": "2026-03-26 16:42:37"
+    },
+    {
+      "iteration": 6,
+      "model": "LightGBM",
+      "params": "{'objective': 'regression', 'metric': 'rmse', 'boosting_type': 'gbdt', 'num_leaves': 31, 'learning_rate': 0.05, 'feature_fraction': 0.9, 'bagging_fraction': 0.8, 'bagging_freq': 5, 'verbose': -1, 'seed': 42}",
+      "metrics": {
+        "mse": 10422.7,
+        "rmse": 102.09,
+        "mae": 76.62,
+        "r2": 0.407
+      },
+      "timestamp": "2026-03-26 16:43:32"
+    },
+    {
+      "iteration": 7,
+      "model": "xgboost",
+      "params": "{'n_estimators': 500, 'max_depth': 9, 'learning_rate': 0.25563161277189356, 'subsample': 0.9163343192885115, 'colsample_bytree': 0.8436295453734979, 'min_child_weight': 3, 'gamma': 2.129604113253718e-06, 'reg_alpha': 6.726626407369017e-08, 'reg_lambda': 0.03947705058777969, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'tree_method': 'hist', 'device': 'cpu', 'random_state': 42}",
+      "metrics": {
+        "mse": 11948.95,
+        "rmse": 109.31,
+        "mae": 81.23,
+        "r2": 0.3201
+      },
+      "timestamp": "2026-03-26 16:45:10"
+    },
+    {
+      "iteration": 8,
+      "model": "XGBRegressor",
+      "params": "{'n_estimators': 1000, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1.0, 'random_state': 42, 'n_jobs': -1, 'eval_metric': 'rmse', 'early_stopping_rounds': 50}",
+      "metrics": {
+        "mse": 10356.82,
+        "rmse": 101.77,
+        "mae": 76.64,
+        "r2": 0.4107
+      },
+      "timestamp": "2026-03-26 16:45:27"
+    },
+    {
+      "iteration": 9,
+      "model": "XGBRegressor",
+      "params": "{'n_estimators': 200, 'max_depth': 6, 'learning_rate': 0.1, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'n_jobs': -1, 'tree_method': 'hist', 'enable_categorical': True, 'verbosity': 0}",
+      "metrics": {
+        "mse": 10474.82,
+        "rmse": 102.35,
+        "mae": 77.19,
+        "r2": 0.404
+      },
+      "timestamp": "2026-03-26 16:46:48"
+    },
+    {
+      "iteration": 10,
+      "model": "XGBoost",
+      "params": "{'n_estimators': 500, 'max_depth': 6, 'learning_rate': 0.05, 'subsample': 0.8, 'colsample_bytree': 0.7, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'n_jobs': -1, 'verbosity': 0}",
+      "metrics": {
+        "mse": 14208.28,
+        "rmse": 119.2,
+        "mae": 104.19,
+        "r2": 0.1916
+      },
+      "timestamp": "2026-03-26 16:47:32"
+    },
+    {
+      "iteration": 11,
+      "model": "xgboost",
+      "params": "{'n_estimators': 500, 'max_depth': 6, 'learning_rate': 0.05, 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1.0, 'random_state': 42, 'n_jobs': -1, 'eval_metric': 'rmse'}",
+      "metrics": {
+        "mse": 10360.15,
+        "rmse": 101.78,
+        "mae": 76.64,
+        "r2": 0.4105
+      },
+      "timestamp": "2026-03-26 16:47:50"
+    },
+    {
+      "iteration": 12,
+      "model": "XGBoost",
+      "params": "{'n_estimators': 1000, 'learning_rate': 0.01, 'max_depth': 6, 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1.0, 'random_state': 42, 'n_jobs': -1, 'eval_metric': 'rmse', 'early_stopping_rounds': 50, 'verbose': 0}",
+      "metrics": {
+        "mse": 16803.66,
+        "rmse": 129.63,
+        "mae": 114.42,
+        "r2": 0.0439
+      },
+      "timestamp": "2026-03-26 17:02:02"
+    },
+    {
+      "iteration": 13,
+      "model": "XGBRegressor",
+      "params": "{'n_estimators': 1000, 'max_depth': 6, 'learning_rate': 0.05, 'subsample': 0.8, 'colsample_bytree': 0.8, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1.0, 'random_state': 42, 'n_jobs': -1, 'eval_metric': 'rmse', 'early_stopping_rounds': 50}",
+      "metrics": {
+        "mse": 10877.14,
+        "rmse": 104.29,
+        "mae": 79.43,
+        "r2": 0.3811
+      },
+      "timestamp": "2026-03-26 17:02:57"
+    },
+    {
+      "iteration": 14,
+      "model": "XGBoost",
+      "params": "{'n_estimators': 1000, 'learning_rate': 0.01, 'max_depth': 8, 'subsample': 0.8, 'colsample_bytree': 0.8, 'min_child_weight': 3, 'gamma': 0.1, 'reg_alpha': 0.1, 'reg_lambda': 1, 'random_state': 42, 'n_jobs': -1, 'eval_metric': 'rmse', 'early_stopping_rounds': 50, 'verbose': 0}",
+      "metrics": {
+        "mse": 10775.67,
+        "rmse": 103.81,
+        "mae": 78.93,
+        "r2": 0.3869
+      },
+      "timestamp": "2026-03-26 17:03:30"
+    },
+    {
+      "iteration": 15,
+      "model": "XGBRegressor",
+      "params": "{'n_estimators': 500, 'max_depth': 6, 'learning_rate': 0.1, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'tree_method': 'hist'}",
+      "metrics": {
+        "mse": 11154.04,
+        "rmse": 105.61,
+        "mae": 79.51,
+        "r2": 0.3654
+      },
+      "timestamp": "2026-03-26 17:05:12"
+    },
+    {
+      "iteration": 16,
+      "model": "ensemble_xgb_gb_rf_ada",
+      "params": "{'xgb': {'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'random_state': 42, 'tree_method': 'hist', 'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 6, 'subsample': 0.8, 'colsample_bytree': 0.8, 'min_child_weight': 3, 'gamma': 0.1}, 'gb': {'n_estimators': 200, 'learning_rate': 0.05, 'max_depth': 5, 'subsample': 0.8, 'random_state': 42}, 'rf': {'n_estimators': 150, 'max_depth': 15, 'min_samples_split': 5, 'min_samples_leaf': 3, 'random_state': 42, 'n_jobs': -1}, 'ada': {'n_estimators': 100, 'learning_rate': 0.1, 'random_state': 42}, 'ensemble_weights': {'xgb': 0.4, 'gb': 0.3, 'rf': 0.2, 'ada': 0.1}}",
+      "metrics": {
+        "mse": 9295.08,
+        "rmse": 96.41,
+        "mae": 75.63,
+        "r2": 0.4711
+      },
+      "timestamp": "2026-03-26 17:07:36"
+    },
+    {
+      "iteration": 17,
+      "model": "xgboost",
+      "params": "{'max_depth': 10, 'learning_rate': 0.016563744479651202, 'subsample': 0.8711318717969517, 'colsample_bytree': 0.8142502383404177, 'gamma': 0.0061646679157609935, 'reg_alpha': 0.9035058263346192, 'reg_lambda': 0.00014936533310019848, 'min_child_weight': 1, 'n_estimators': 367, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'tree_method': 'hist', 'device': 'cpu', 'random_state': 42, 'verbosity': 0}",
+      "metrics": {
+        "mse": 10706.12,
+        "rmse": 103.47,
+        "mae": 77.99,
+        "r2": 0.3909
+      },
+      "timestamp": "2026-03-26 17:13:20"
+    },
+    {
+      "iteration": 18,
+      "model": "xgboost",
+      "params": "{'max_depth': 10, 'learning_rate': 0.017219997606834396, 'subsample': 0.7223551931259267, 'colsample_bytree': 0.9994636029283407, 'min_child_weight': 5, 'gamma': 0.0029380719420617333, 'reg_alpha': 0.018898592147144757, 'reg_lambda': 0.0055167359629501875, 'num_boost_round': 674}",
+      "metrics": {
+        "mse": 10830.88,
+        "rmse": 104.07,
+        "mae": 77.53,
+        "r2": 0.3838
+      },
+      "timestamp": "2026-03-26 17:18:11"
+    },
+    {
+      "iteration": 19,
+      "model": "xgboost",
+      "params": "{'n_estimators': 654, 'max_depth': 10, 'learning_rate': 0.025784465442837773, 'subsample': 0.9532325132693599, 'colsample_bytree': 0.9650392479771582, 'gamma': 0.2510200306454764, 'reg_alpha': 6.223559130574747, 'reg_lambda': 4.9796198059722, 'min_child_weight': 10, 'tree_method': 'hist', 'eval_metric': 'rmse', 'early_stopping_rounds': 50, 'random_state': 42, 'n_jobs': -1}",
+      "metrics": {
+        "mse": 10724.39,
+        "rmse": 103.56,
+        "mae": 78.34,
+        "r2": 0.3898
+      },
+      "timestamp": "2026-03-26 17:20:27"
+    },
+    {
+      "iteration": 20,
+      "model": "xgboost",
+      "params": "{'best_params': {'max_depth': 11, 'learning_rate': 0.017861468454362966, 'subsample': 0.7461553420603206, 'colsample_bytree': 0.9639890760388824, 'min_child_weight': 2, 'reg_alpha': 1.5946245223151698e-08, 'reg_lambda': 0.00635865915202515, 'objective': 'reg:squarederror', 'eval_metric': 'rmse', 'tree_method': 'hist', 'grow_policy': 'lossguide', 'random_state': 42, 'n_jobs': -1, 'verbosity': 0}, 'n_estimators': 1000, 'feature_names': ['lat', 'lon', 'type_house', 'sum', 'min_days', 'amt_reviews', 'avg_reviews', 'total_host', 'log_sum', 'log_amt_reviews', 'log_total_host', 'reviews_per_host', 'sum_per_review', 'lat_lon', 'type_house_sq'], 'early_stopping_rounds': 237}",
+      "metrics": {
+        "mse": 10693.66,
+        "rmse": 103.41,
+        "mae": 77.94,
+        "r2": 0.3916
+      },
+      "timestamp": "2026-03-26 17:31:59"
+    }
+  ],
+  "agent_stats": {
+    "Orchestrator": {
+      "calls": 54,
+      "successes": 54,
+      "avg_latency": 3.26,
+      "total_tokens": 452022
+    },
+    "DataAgent": {
+      "calls": 5,
+      "successes": 5,
+      "avg_latency": 8.05,
+      "total_tokens": 6924
+    },
+    "ModelAgent": {
+      "calls": 60,
+      "successes": 60,
+      "avg_latency": 15.46,
+      "total_tokens": 121687
+    },
+    "EvalAgent": {
+      "calls": 20,
+      "successes": 20,
+      "avg_latency": 7.03,
+      "total_tokens": 11841
+    }
+  },
+  "best_mse": 9295.08
+}

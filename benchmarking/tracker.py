@@ -6,6 +6,21 @@ import logging
 logger = logging.getLogger("Tracker")
 
 
+class _SafeEncoder(json.JSONEncoder):
+    def default(self, o):
+        try:
+            import numpy as np
+            if isinstance(o, np.ndarray):
+                return o.tolist()
+            if isinstance(o, (np.integer,)):
+                return int(o)
+            if isinstance(o, (np.floating,)):
+                return float(o)
+        except ImportError:
+            pass
+        return str(o)
+
+
 class ExperimentTracker:
     def __init__(self, model_name, time_budget, lib_versions):
         self.run_id = time.strftime("%Y%m%d_%H%M%S")
@@ -55,6 +70,6 @@ class ExperimentTracker:
             ),
         }
         with open(path, "w") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+            json.dump(data, f, indent=2, ensure_ascii=False, cls=_SafeEncoder)
         logger.info(f"Experiment saved to {path}")
         return path

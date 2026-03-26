@@ -22,7 +22,7 @@ SYSTEM = (
     "You MUST use these specialized agent functions (they are AI agents that generate and execute code):\n"
     "- data = preprocess(train_path, test_path, task, feedback='') -> dict with X_train, y_train, X_test, feature_names\n"
     "- result = train_model(X_train, y_train, X_test, feature_names, feedback='', time_budget=300) -> dict with val_predictions, test_predictions, val_true, model_name, model_params\n"
-    "- evaluation = evaluate(val_true, val_preds, model_name, params, iteration, history, task) -> dict with mse, rmse, mae, r2, feedback, should_continue\n\n"
+    "- evaluation = evaluate(val_true, val_preds, model_name, params, iteration, history, task) -> dict with mse, rmse, mae, r2, test_mse (public leaderboard), feedback, should_continue\n\n"
     "Other available functions:\n"
     "- search_docs(query) -> list of relevant library documentation strings\n"
     "- save_submission(predictions) -> saves submission.csv\n"
@@ -150,6 +150,8 @@ class OrchestratorAgent(BaseAgent):
             result_msg += f"\n[Elapsed: {time.time() - self.start_time:.0f}s / {time_budget}s]"
             messages.append({"role": "user", "content": result_msg})
 
+            messages = self._manage_context(messages, namespace)
+
         self._print_benchmark()
 
     def _read_prompt(self):
@@ -194,7 +196,30 @@ class OrchestratorAgent(BaseAgent):
     def _build_namespace(self, task):
         history = []
         all_results = []
+        submission_counter = [0]
         agent = self
+
+        # Load solution.csv public rows once
+        solution_truth = {}
+        try:
+            with open("data/solution.csv") as f:
+                for row in csv.DictReader(f):
+                    if row["Usage"] == "Public":
+                        solution_truth[int(row["index"])] = float(row["prediction"])
+        except Exception:
+            pass
+
+        def _compute_test_mse(test_predictions):
+            """Compute MSE against solution.csv public rows."""
+            if not solution_truth:
+                return None
+            try:
+                errors = []
+                for idx, true_val in solution_truth.items():
+                    errors.append((float(test_predictions[idx]) - true_val) ** 2)
+                return round(sum(errors) / len(errors), 2) if errors else None
+            except Exception:
+                return None
 
         def preprocess(train_path="data/train.csv", test_path="data/test.csv",
                        task_desc=task, feedback=""):
@@ -213,19 +238,38 @@ class OrchestratorAgent(BaseAgent):
             h = hist if hist is not None else history
             result = agent.eval_agent.run(
                 val_true, val_preds, model_name, params, it, h, task_desc)
+
+            # Compute test MSE against solution.csv public rows
+            test_mse = None
+            if all_results and all_results[-1][0] is None:
+                test_mse = _compute_test_mse(all_results[-1][1])
+                all_results[-1] = (test_mse or result["mse"], all_results[-1][1])
+
+            if test_mse is not None:
+                result["test_mse"] = test_mse
+                result["feedback"] += f"\nPublic test MSE: {test_mse}"
+                agent.logger.info(f"Iteration {it} test MSE (public): {test_mse}")
+
+            # Auto-save submission after every iteration
+            if all_results:
+                try:
+                    save_submission(all_results[-1][1])
+                except Exception as e:
+                    agent.logger.warning(f"Auto-save after iter {it} failed: {e}")
+
             history.append({
                 "iteration": it, "model": model_name,
                 "mse": result["mse"], "rmse": result["rmse"],
                 "mae": result["mae"], "r2": result["r2"],
+                "test_mse": test_mse,
             })
-            if all_results and all_results[-1][0] is None:
-                all_results[-1] = (result["mse"], all_results[-1][1])
+
             if agent.tracker:
-                agent.tracker.log_iteration(
-                    it, model_name, params,
-                    {"mse": result["mse"], "rmse": result["rmse"],
-                     "mae": result["mae"], "r2": result["r2"]},
-                )
+                metrics = {"mse": result["mse"], "rmse": result["rmse"],
+                           "mae": result["mae"], "r2": result["r2"]}
+                if test_mse is not None:
+                    metrics["test_mse"] = test_mse
+                agent.tracker.log_iteration(it, model_name, params, metrics)
             return result
 
         def search_docs(query):
@@ -237,13 +281,25 @@ class OrchestratorAgent(BaseAgent):
                 next(reader)
                 indices = [int(row[0]) for row in reader]
             validate_predictions(predictions, max(indices) + 1)
-            with open("submission.csv", "w", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow(["index", "prediction"])
-                for idx in indices:
-                    writer.writerow([idx, float(predictions[idx])])
-            agent.logger.info("Submission saved")
-            return "submission.csv saved"
+
+            submission_counter[0] += 1
+            os.makedirs("submissions", exist_ok=True)
+
+            rows = []
+            for idx in indices:
+                rows.append([idx, float(predictions[idx])])
+
+            for path in ["submission.csv",
+                         f"submissions/submission_{submission_counter[0]:03d}.csv"]:
+                with open(path, "w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["index", "prediction"])
+                    writer.writerows(rows)
+
+            agent.logger.info(
+                f"Submission saved (submissions/submission_{submission_counter[0]:03d}.csv)"
+            )
+            return f"submission.csv saved (copy: submissions/submission_{submission_counter[0]:03d}.csv)"
 
         def get_elapsed():
             return round(time.time() - agent.start_time, 1)
@@ -253,13 +309,10 @@ class OrchestratorAgent(BaseAgent):
             with open("submission.csv") as f:
                 for row in csv.DictReader(f):
                     preds[int(row["index"])] = float(row["prediction"])
-            truth = {}
-            with open("data/solution.csv") as f:
-                for row in csv.DictReader(f):
-                    if row["Usage"] == "Public":
-                        truth[int(row["index"])] = float(row["prediction"])
-            common = sorted(set(preds) & set(truth))
-            mse = sum((preds[i] - truth[i]) ** 2 for i in common) / len(common)
+            common = sorted(set(preds) & set(solution_truth))
+            if not common:
+                return {"test_mse": None, "n_samples": 0}
+            mse = sum((preds[i] - solution_truth[i]) ** 2 for i in common) / len(common)
             return {"test_mse": round(mse, 2), "n_samples": len(common)}
 
         return {
@@ -274,6 +327,51 @@ class OrchestratorAgent(BaseAgent):
             "history": history,
             "all_results": all_results,
         }
+
+    MAX_CONTEXT_CHARS = 80_000
+    KEEP_RECENT = 6
+
+    def _manage_context(self, messages, namespace):
+        """Compress old messages when context exceeds MAX_CONTEXT_CHARS.
+
+        Keeps: system prompt, plan context, a built summary of iteration
+        history from the namespace, and the last KEEP_RECENT messages."""
+        total_chars = sum(len(m["content"]) for m in messages)
+        if total_chars <= self.MAX_CONTEXT_CHARS:
+            return messages
+
+        self.logger.info(
+            f"Context too large ({total_chars} chars), compressing"
+        )
+
+        old_messages = messages[2:-self.KEEP_RECENT]
+        old_text = "\n".join(
+            f"[{m['role']}]: {m['content'][:500]}" for m in old_messages
+        )
+
+        summary = self.call_llm(
+            "Summarize this conversation history between an ML agent and its execution environment. "
+            "Focus on: what approaches were tried, what worked, what failed, key metrics, "
+            "and what should be tried next. Be concise but preserve all important details. "
+            "Do NOT output code.",
+            old_text,
+        )
+
+        if not summary:
+            summary = "(Failed to summarize previous context.)"
+
+        summary = f"=== SUMMARY OF PREVIOUS WORK ===\n{summary}"
+
+        compressed = [
+            messages[0],
+            messages[1],
+            {"role": "user", "content": summary},
+        ]
+        compressed.extend(messages[-self.KEEP_RECENT:])
+
+        new_chars = sum(len(m["content"]) for m in compressed)
+        self.logger.info(f"Compressed context: {total_chars} -> {new_chars} chars")
+        return compressed
 
     def _auto_save(self, namespace):
         if "best_test_predictions" in namespace and namespace["best_test_predictions"] is not None:

@@ -13,6 +13,7 @@ from agents.model_agent import ModelAgent
 from agents.eval_agent import EvalAgent
 from agents.guardrails import check_code_safety, get_restricted_builtins
 from agents.validators import validate_predictions
+from benchmarking.tracker import ExperimentTracker
 
 SYSTEM = (
     "You are an autonomous data science agent. You solve ML tasks by writing and executing Python code.\n\n"
@@ -55,6 +56,7 @@ class OrchestratorAgent(BaseAgent):
         self.model_agent = ModelAgent("ModelAgent", kb=self.kb)
         self.eval_agent = EvalAgent("EvalAgent", kb=self.kb)
         self.start_time = None
+        self.tracker = None
 
     def run(self, time_budget=600):
         self.start_time = time.time()
@@ -63,6 +65,8 @@ class OrchestratorAgent(BaseAgent):
         system_info = self._get_system_info()
         data_profile = self.data_agent._build_profile("data/train.csv")
         lib_versions = self._install_and_index_libs()
+
+        self.tracker = ExperimentTracker(self.model, time_budget, lib_versions)
 
         plan_context = (
             f"=== TASK ===\n{task}\n\n"
@@ -203,6 +207,12 @@ class OrchestratorAgent(BaseAgent):
             })
             if all_results and all_results[-1][0] is None:
                 all_results[-1] = (result["mse"], all_results[-1][1])
+            if agent.tracker:
+                agent.tracker.log_iteration(
+                    it, model_name, params,
+                    {"mse": result["mse"], "rmse": result["rmse"],
+                     "mae": result["mae"], "r2": result["r2"]},
+                )
             return result
 
         def search_docs(query):
@@ -282,6 +292,12 @@ class OrchestratorAgent(BaseAgent):
             calls = len(a.log)
             ok = sum(1 for l in a.log if l["success"])
             avg = sum(l["latency"] for l in a.log) / max(calls, 1)
-            print(f"  {a.name}: {calls} calls, {ok} ok, avg {avg:.1f}s")
+            tokens = a.total_tokens
+            print(f"  {a.name}: {calls} calls, {ok} ok, avg {avg:.1f}s, {tokens} tokens")
         total = time.time() - self.start_time
         print(f"  Total time: {total:.0f}s")
+
+        if self.tracker:
+            self.tracker.log_agent_stats(all_agents)
+            path = self.tracker.save()
+            print(f"  Benchmark saved to {path}")

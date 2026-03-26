@@ -19,6 +19,7 @@ class BaseAgent:
         self.model = os.getenv("MODEL")
         self.kb = kb or KnowledgeBase()
         self.log = []
+        self.total_tokens = 0
         self.logger = logging.getLogger(name)
 
     def call_llm(self, system, user, temperature=0.3):
@@ -36,6 +37,11 @@ class BaseAgent:
                 temperature=temperature,
             )
             text = response.choices[0].message.content
+            if hasattr(response, "usage") and response.usage:
+                self.total_tokens += (
+                    (response.usage.prompt_tokens or 0)
+                    + (response.usage.completion_tokens or 0)
+                )
             self._log_call(time.time() - start, True,
                            sum(len(m["content"]) for m in messages), len(text))
             return text

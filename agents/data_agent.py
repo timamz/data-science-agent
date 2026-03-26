@@ -2,6 +2,7 @@ import csv
 import io
 
 from agents.base import BaseAgent
+from agents.validators import validate_csv, validate_agent_output
 
 SYSTEM = (
     "You are a data preprocessing agent. Generate Python code to preprocess a dataset.\n\n"
@@ -21,6 +22,9 @@ SYSTEM = (
 
 class DataAgent(BaseAgent):
     def run(self, train_path, test_path, task_description, feedback=""):
+        validate_csv(train_path)
+        validate_csv(test_path)
+
         profile = self._build_profile(train_path)
 
         rag_context = self.kb.search("preprocessing LabelEncoder fillna read_csv feature engineering")
@@ -39,10 +43,12 @@ class DataAgent(BaseAgent):
         ns = self.execute_code(
             code, {"train_path": train_path, "test_path": test_path}, context=SYSTEM,
         )
-        return {
+        result = {
             "X_train": ns["X_train"], "y_train": ns["y_train"],
             "X_test": ns["X_test"], "feature_names": ns["feature_names"],
         }
+        validate_agent_output(result, ["X_train", "y_train", "X_test", "feature_names"])
+        return result
 
     def _build_profile(self, path):
         with open(path) as f:

@@ -1,4 +1,5 @@
 from agents.base import BaseAgent
+from agents.validators import validate_agent_output
 
 SYSTEM = (
     "You are a model training agent. Generate Python code to train an ML model.\n\n"
@@ -15,6 +16,9 @@ SYSTEM = (
 
 class ModelAgent(BaseAgent):
     def run(self, X_train, y_train, X_test, feature_names, feedback="", time_budget=300):
+        if X_train is None or y_train is None or X_test is None:
+            raise ValueError("Input data cannot be None")
+
         summary = (
             f"X_train shape: {X_train.shape}, X_test shape: {X_test.shape}\n"
             f"Features: {feature_names}\n"
@@ -43,8 +47,12 @@ class ModelAgent(BaseAgent):
             "time_budget_seconds": time_budget,
         }, context=SYSTEM)
 
-        return {
+        result = {
             "val_predictions": ns["val_predictions"], "test_predictions": ns["test_predictions"],
             "val_true": ns["val_true"], "model_name": ns["model_name"],
             "model_params": ns["model_params"],
         }
+        validate_agent_output(result, [
+            "val_predictions", "test_predictions", "val_true", "model_name", "model_params",
+        ])
+        return result

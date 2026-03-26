@@ -11,6 +11,8 @@ from agents.base import BaseAgent
 from agents.data_agent import DataAgent
 from agents.model_agent import ModelAgent
 from agents.eval_agent import EvalAgent
+from agents.guardrails import check_code_safety, get_restricted_builtins
+from agents.validators import validate_predictions
 
 SYSTEM = (
     "You are an autonomous data science agent. You solve ML tasks by writing and executing Python code.\n\n"
@@ -107,12 +109,17 @@ class OrchestratorAgent(BaseAgent):
 
             stdout_capture = io.StringIO()
             error_msg = None
-            try:
-                with contextlib.redirect_stdout(stdout_capture):
-                    exec(code, namespace)
-            except Exception as e:
-                error_msg = f"{type(e).__name__}: {e}"
-                self.logger.warning(f"Code execution error: {error_msg}")
+            is_safe, violations = check_code_safety(code)
+            if not is_safe:
+                error_msg = f"Code blocked by guardrails: {', '.join(violations)}"
+                self.logger.warning(error_msg)
+            else:
+                try:
+                    with contextlib.redirect_stdout(stdout_capture):
+                        exec(code, namespace)
+                except Exception as e:
+                    error_msg = f"{type(e).__name__}: {e}"
+                    self.logger.warning(f"Code execution error: {error_msg}")
 
             output = stdout_capture.getvalue()
             result_msg = ""
@@ -206,6 +213,7 @@ class OrchestratorAgent(BaseAgent):
                 reader = csv.reader(f)
                 next(reader)
                 indices = [int(row[0]) for row in reader]
+            validate_predictions(predictions, max(indices) + 1)
             with open("submission.csv", "w", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow(["index", "prediction"])
@@ -232,7 +240,7 @@ class OrchestratorAgent(BaseAgent):
             return {"test_mse": round(mse, 2), "n_samples": len(common)}
 
         return {
-            "__builtins__": __builtins__,
+            "__builtins__": get_restricted_builtins(),
             "preprocess": preprocess,
             "train_model": train_model,
             "evaluate": evaluate,

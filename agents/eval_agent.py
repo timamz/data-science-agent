@@ -9,6 +9,13 @@ SYSTEM = (
 
 class EvalAgent(BaseAgent):
     def run(self, val_true, val_preds, model_name, params, iteration, history, task_description):
+        if val_true is None or val_preds is None:
+            raise ValueError("Validation data cannot be None")
+        if len(val_true) != len(val_preds):
+            raise ValueError(
+                f"Length mismatch: val_true={len(val_true)}, val_preds={len(val_preds)}"
+            )
+
         metrics = self._compute_metrics(val_true, val_preds)
         self.logger.info(f"Iteration {iteration}: {metrics}")
 

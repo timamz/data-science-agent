@@ -8,6 +8,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from rag import KnowledgeBase
+from agents.guardrails import check_code_safety, get_restricted_builtins
 
 
 class BaseAgent:
@@ -77,6 +78,23 @@ class BaseAgent:
         return match.group(1).strip() if match else None
 
     def execute_code(self, code, namespace, max_retries=5, context=""):
+        is_safe, violations = check_code_safety(code)
+        if not is_safe:
+            self.logger.warning(f"Unsafe code detected: {violations}. Requesting fix.")
+            fix = self.call_llm(
+                "The code contains disallowed operations: "
+                + ", ".join(violations) + ". "
+                "Rewrite without these operations. Output only code in a ```python block.",
+                f"Requirements:\n{context}\n\nCode:\n```python\n{code}\n```",
+            )
+            code = self.extract_code(fix) or code
+            is_safe, violations = check_code_safety(code)
+            if not is_safe:
+                raise RuntimeError(f"Code still unsafe after fix: {violations}")
+
+        if "__builtins__" not in namespace:
+            namespace["__builtins__"] = get_restricted_builtins()
+
         last_error = None
         for attempt in range(max_retries):
             try:

@@ -13,8 +13,11 @@ def load_runs():
     runs = []
     for fname in sorted(os.listdir(RUNS_DIR)):
         if fname.endswith(".json"):
-            with open(os.path.join(RUNS_DIR, fname)) as f:
-                runs.append(json.load(f))
+            try:
+                with open(os.path.join(RUNS_DIR, fname)) as f:
+                    runs.append(json.load(f))
+            except (json.JSONDecodeError, ValueError):
+                logger.warning(f"Skipping corrupt file: {fname}")
     return runs
 
 

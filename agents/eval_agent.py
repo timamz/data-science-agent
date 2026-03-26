@@ -8,7 +8,11 @@ SYSTEM = (
 
 
 class EvalAgent(BaseAgent):
+    """Agent for model evaluation and feedback generation.
+    Computes metrics and uses LLM to analyze results."""
+
     def run(self, val_true, val_preds, model_name, params, iteration, history, task_description):
+        """Evaluate predictions. Returns dict with MSE, RMSE, MAE, R², feedback, should_continue."""
         if val_true is None or val_preds is None:
             raise ValueError("Validation data cannot be None")
         if len(val_true) != len(val_preds):
@@ -40,6 +44,7 @@ class EvalAgent(BaseAgent):
         }
 
     def _compute_metrics(self, val_true, val_preds):
+        """Compute MSE, RMSE, MAE, R² without external dependencies."""
         true = [float(v) for v in val_true]
         pred = [float(v) for v in val_preds]
         n = len(true)

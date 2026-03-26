@@ -15,7 +15,11 @@ SYSTEM = (
 
 
 class ModelAgent(BaseAgent):
+    """Agent for LLM-driven model training. Generates and executes
+    gradient boosting training code (LightGBM, XGBoost)."""
+
     def run(self, X_train, y_train, X_test, feature_names, feedback="", time_budget=300):
+        """Train a model on the data. Returns dict with val/test predictions, model info."""
         if X_train is None or y_train is None or X_test is None:
             raise ValueError("Input data cannot be None")
 

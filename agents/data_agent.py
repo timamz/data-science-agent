@@ -21,7 +21,11 @@ SYSTEM = (
 
 
 class DataAgent(BaseAgent):
+    """Agent for LLM-driven data preprocessing. Generates and executes
+    pandas/numpy code to produce numeric DataFrames from raw CSV."""
+
     def run(self, train_path, test_path, task_description, feedback=""):
+        """Preprocess train/test CSV files. Returns dict with X_train, y_train, X_test, feature_names."""
         validate_csv(train_path)
         validate_csv(test_path)
 
@@ -51,6 +55,7 @@ class DataAgent(BaseAgent):
         return result
 
     def _build_profile(self, path):
+        """Build a text profile of a CSV: columns, row count, missing values, sample rows."""
         with open(path) as f:
             reader = csv.reader(f)
             header = next(reader)

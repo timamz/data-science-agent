@@ -50,6 +50,9 @@ SYSTEM = (
 
 
 class OrchestratorAgent(BaseAgent):
+    """Central orchestrator agent. Runs a multi-turn ReAct loop, delegating
+    preprocessing, training, and evaluation to specialized sub-agents."""
+
     def __init__(self):
         super().__init__("Orchestrator")
         self.data_agent = DataAgent("DataAgent", kb=self.kb)
@@ -59,6 +62,7 @@ class OrchestratorAgent(BaseAgent):
         self.tracker = None
 
     def run(self, time_budget=600):
+        """Run the full autonomous ML pipeline within the given time budget."""
         self.start_time = time.time()
 
         task = self._read_prompt()

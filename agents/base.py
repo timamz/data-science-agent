@@ -12,6 +12,9 @@ from agents.guardrails import check_code_safety, get_restricted_builtins
 
 
 class BaseAgent:
+    """Base class for all agents. Provides LLM communication, code parsing,
+    safe code execution with auto-retry, and monitoring."""
+
     def __init__(self, name, kb=None):
         load_dotenv()
         self.name = name
@@ -23,12 +26,14 @@ class BaseAgent:
         self.logger = logging.getLogger(name)
 
     def call_llm(self, system, user, temperature=0.3):
+        """Single-turn LLM call with system and user messages."""
         return self.call_llm_multi([
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ], temperature)
 
     def call_llm_multi(self, messages, temperature=0.3):
+        """Multi-turn LLM call. Tracks latency, tokens, and logs the result."""
         start = time.time()
         try:
             response = self.client.chat.completions.create(
@@ -65,6 +70,7 @@ class BaseAgent:
         self.log.append(entry)
 
     def parse_json(self, text, fallback=None):
+        """Extract JSON from LLM response. Tries raw parse, code block, and regex fallback."""
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
         for attempt in [
             lambda: json.loads(text),
@@ -79,11 +85,13 @@ class BaseAgent:
         return fallback or {}
 
     def extract_code(self, text):
+        """Extract Python code from a ```python``` block in LLM response."""
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
         match = re.search(r"```(?:python)?\s*([\s\S]*?)```", text)
         return match.group(1).strip() if match else None
 
     def execute_code(self, code, namespace, max_retries=5, context=""):
+        """Execute LLM-generated code with guardrails check and auto-retry on errors."""
         is_safe, violations = check_code_safety(code)
         if not is_safe:
             self.logger.warning(f"Unsafe code detected: {violations}. Requesting fix.")

@@ -9,6 +9,9 @@ logger = logging.getLogger("RAG")
 
 
 class KnowledgeBase:
+    """BM25-based retrieval over library documentation. Indexes docstrings
+    from installed Python packages and provides search by relevance."""
+
     def __init__(self):
         self.documents = []
         self.versions = {}
@@ -18,6 +21,7 @@ class KnowledgeBase:
         self._idf = {}
 
     def index_library(self, package_name, max_docs=2000):
+        """Index docstrings from a Python package for BM25 retrieval."""
         try:
             mod = importlib.import_module(package_name)
         except ImportError:
@@ -138,6 +142,7 @@ class KnowledgeBase:
         return score
 
     def search(self, query, top_k=5):
+        """Search indexed documents by BM25 relevance. Returns top_k results."""
         if self._index_dirty:
             self._rebuild_index()
         if not self.documents:
